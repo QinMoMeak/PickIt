@@ -94,6 +94,24 @@
 - 高级参数默认隐藏，不再出现在主设置面板
 - 新增 `AiProviderUiModel` 与统一 provider/model 配置源，支持服务商切换时联动模型列表和默认 Base URL
 
+### 智谱识别链路联调修复
+
+- 修复 Z.ai 默认 Base URL，统一保存为服务根路径 `https://open.bigmodel.cn/api/paas/v4/`
+- 请求阶段统一在代码中拼接 `chat/completions`，避免 UI 配置与代码重复拼接
+- 图片识别请求改为严格多模态格式：`messages[].content` 同时包含 `image_url` 与 `text`
+- 通过本机直连测试确认：智谱对纯 base64 字符串兼容正常，而 `data:image/...;base64,...` 可能被服务端直接断开
+- 本地图片改为转换成纯 base64 字符串后发送，修复实际识别失败问题
+- 增加脱敏调试日志：provider、model、耗时、HTTP 状态码、原始响应预览、失败类别
+- 细化异常分类并将前端提示改为可联调错误摘要，不再只显示泛化失败文案
+- 补充联调文档 `docs/ai-provider-debugging.md`
+
+### 新增 iFlow 服务商
+
+- 在 `AI 设置` 中新增 `iFlow` 服务商入口，默认 Base URL 为 `https://apis.iflow.cn/v1/`
+- 新增 `qwen3-vl-plus` 与 `TBStars2-200B-A13B` 模型选项
+- 将 `iflow` 映射到 `OpenAI-compatible` 适配层，业务层无需感知具体厂商差异
+- 将 `OpenAiCompatibleVisionClient` 从占位实现改为真实多模态请求客户端，统一使用 `chat/completions`
+
 ### 当前状态
 
 - 设计文档、Android 工程、主页面骨架、识别链路、本地持久化、备份恢复均已打通

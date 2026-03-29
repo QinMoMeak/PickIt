@@ -8,6 +8,8 @@ import com.pickit.app.domain.model.ParsedProductResult
 import com.pickit.app.domain.model.Platform
 import com.pickit.app.domain.model.VisionParseRequest
 import com.pickit.app.domain.service.VisionParseService
+import com.pickit.app.infrastructure.ai.error.ImageEncodingException
+import com.pickit.app.infrastructure.ai.error.MediaAccessException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -23,15 +25,29 @@ class ParseProductUseCase @Inject constructor(
         requireNotNull(imageUri) { "请先选择一张商品图片" }
 
         val contentResolver = context.contentResolver
-        val mimeType = contentResolver.getType(imageUri) ?: "image/jpeg"
-        val bytes = contentResolver.openInputStream(imageUri)?.use { it.readBytes() }
-            ?: error("无法读取选中的图片")
-        val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
-        val dataUri = "data:$mimeType;base64,$base64"
+        val mimeType = contentResolver.getType(imageUri)
+            ?.takeIf { it == "image/jpeg" || it == "image/png" || it == "image/webp" }
+            ?: "image/jpeg"
+
+        val bytes = runCatching {
+            contentResolver.openInputStream(imageUri)?.use { it.readBytes() }
+        }.getOrElse { error ->
+            throw MediaAccessException("无法读取选中的图片", error)
+        } ?: throw MediaAccessException("无法读取选中的图片")
+
+        if (bytes.isEmpty()) {
+            throw ImageEncodingException("图片编码失败：读取到空数据")
+        }
+
+        val base64 = runCatching {
+            Base64.encodeToString(bytes, Base64.NO_WRAP)
+        }.getOrElse { error ->
+            throw ImageEncodingException("图片编码失败", error)
+        }
 
         visionParseService.parseProduct(
             VisionParseRequest(
-                imageBase64 = dataUri,
+                imageBase64 = base64,
                 userNote = userNote,
                 parseScene = ParseScene.PRODUCT_RECOGNITION,
                 preferredPlatformCandidates = preferredPlatformCandidates,

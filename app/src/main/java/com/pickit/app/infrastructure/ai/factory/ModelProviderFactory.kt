@@ -16,6 +16,6 @@ class ModelProviderFactory @Inject constructor(
     fun create(provider: ModelProvider): VisionProviderClient = when (provider) {
         ModelProvider.ZHIPU -> zhipuVisionClient
         ModelProvider.OPENAI_COMPATIBLE -> openAiCompatibleVisionClient
-        ModelProvider.OTHER -> throw ProviderConfigurationException("OTHER provider 尚未实现具体适配器")
+        ModelProvider.OTHER -> throw ProviderConfigurationException("当前服务商尚未接入具体适配器")
     }
 }

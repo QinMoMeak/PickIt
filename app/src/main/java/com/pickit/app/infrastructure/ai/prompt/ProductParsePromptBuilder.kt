@@ -1,6 +1,5 @@
 package com.pickit.app.infrastructure.ai.prompt
 
-import com.pickit.app.domain.model.Platform
 import com.pickit.app.domain.model.VisionParseRequest
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +29,6 @@ class ProductParsePromptBuilder @Inject constructor() {
 
         return """
             请识别这张商品相关图片中的结构化信息，用于“好物收藏 App”。
-
             当前场景：${request.parseScene.name}
             结构化输出版本：${request.structuredOutputSchemaVersion}
             候选平台偏好：$preferredPlatforms

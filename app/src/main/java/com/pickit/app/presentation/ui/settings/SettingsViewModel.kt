@@ -45,8 +45,12 @@ class SettingsViewModel @Inject constructor(
                 val selectedModel = settings.aiModel
                     .takeIf { availableModels.contains(it) }
                     ?: availableModels.firstOrNull().orEmpty()
-                val hasCustomBaseUrl = settings.apiBaseUrl.isNotBlank() &&
-                    settings.apiBaseUrl != provider.defaultBaseUrl
+                val normalizedBaseUrl = normalizeBaseUrl(
+                    providerId = provider.providerId,
+                    value = settings.apiBaseUrl.ifBlank { provider.defaultBaseUrl },
+                )
+                val hasCustomBaseUrl = normalizedBaseUrl.isNotBlank() &&
+                    normalizedBaseUrl != provider.defaultBaseUrl
 
                 _uiState.update {
                     it.copy(
@@ -54,7 +58,7 @@ class SettingsViewModel @Inject constructor(
                         selectedModel = selectedModel,
                         availableModels = availableModels,
                         apiKey = settings.aiApiKey,
-                        baseUrl = settings.apiBaseUrl.ifBlank { provider.defaultBaseUrl },
+                        baseUrl = normalizedBaseUrl,
                         webDavPath = settings.webDavPath,
                         hasCustomBaseUrl = hasCustomBaseUrl,
                     )
@@ -114,7 +118,12 @@ class SettingsViewModel @Inject constructor(
             settingsPreferencesDataSource.updateAiProvider(state.selectedProviderId)
             settingsPreferencesDataSource.updateAiModel(state.selectedModel)
             settingsPreferencesDataSource.updateAiApiKey(state.apiKey)
-            settingsPreferencesDataSource.updateApiBaseUrl(state.baseUrl)
+            settingsPreferencesDataSource.updateApiBaseUrl(
+                normalizeBaseUrl(
+                    providerId = state.selectedProviderId,
+                    value = state.baseUrl,
+                ),
+            )
             _uiState.update {
                 it.copy(
                     isAiSheetVisible = false,
@@ -191,5 +200,18 @@ class SettingsViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun normalizeBaseUrl(providerId: String, value: String): String {
+        val trimmed = value.trim()
+        if (trimmed.isBlank()) {
+            return AiProviderCatalog.find(providerId).defaultBaseUrl
+        }
+
+        return trimmed
+            .removeSuffix("chat/completions")
+            .removeSuffix("/chat/completions")
+            .trimEnd('/')
+            .plus("/")
     }
 }

@@ -1,5 +1,6 @@
 package com.pickit.app.infrastructure.ai.parser
 
+import com.pickit.app.infrastructure.ai.error.EmptyModelResponseException
 import com.pickit.app.infrastructure.ai.error.ModelJsonParseException
 import com.pickit.app.infrastructure.ai.error.ModelNonJsonResponseException
 import javax.inject.Inject
@@ -28,7 +29,7 @@ class StructuredJsonParser @Inject constructor(
     fun extractJsonObject(raw: String): String {
         val trimmed = raw.trim()
         if (trimmed.isEmpty()) {
-            throw ModelNonJsonResponseException("模型返回了空文本")
+            throw EmptyModelResponseException("模型返回了空文本")
         }
 
         val fenceRemoved = trimmed

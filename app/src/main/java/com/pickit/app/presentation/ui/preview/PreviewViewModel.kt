@@ -12,6 +12,7 @@ import com.pickit.app.domain.model.SourceType
 import com.pickit.app.domain.model.Tag
 import com.pickit.app.domain.model.toDraft
 import com.pickit.app.domain.repository.ProductRepository
+import com.pickit.app.infrastructure.ai.error.toUserReadableMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Instant
 import java.util.UUID
@@ -60,7 +61,7 @@ class PreviewViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         draft = ParsedProductDraft(sourceNote = noteArg.ifBlank { null }),
-                        errorMessage = error.message ?: "识别失败，请手动补充信息",
+                        errorMessage = error.toUserReadableMessage(),
                     )
                 }
             }

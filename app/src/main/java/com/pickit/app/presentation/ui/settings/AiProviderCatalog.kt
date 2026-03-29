@@ -12,7 +12,7 @@ object AiProviderCatalog {
         AiProviderUiModel(
             providerId = "openai",
             displayName = "OpenAI",
-            defaultBaseUrl = "https://api.openai.com/v1/chat/completions",
+            defaultBaseUrl = "https://api.openai.com/v1/",
             supportedModels = listOf(
                 "gpt-4.1-mini",
                 "gpt-4o-mini",
@@ -21,7 +21,7 @@ object AiProviderCatalog {
         AiProviderUiModel(
             providerId = "gemini",
             displayName = "Google Gemini",
-            defaultBaseUrl = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+            defaultBaseUrl = "https://generativelanguage.googleapis.com/v1beta/openai/",
             supportedModels = listOf(
                 "gemini-2.5-flash",
                 "gemini-1.5-pro",
@@ -30,7 +30,7 @@ object AiProviderCatalog {
         AiProviderUiModel(
             providerId = "anthropic",
             displayName = "Anthropic",
-            defaultBaseUrl = "https://api.anthropic.com/v1/messages",
+            defaultBaseUrl = "https://api.anthropic.com/v1/",
             supportedModels = listOf(
                 "claude-3-5-sonnet-latest",
                 "claude-3-5-haiku-latest",
@@ -39,7 +39,7 @@ object AiProviderCatalog {
         AiProviderUiModel(
             providerId = "deepseek",
             displayName = "DeepSeek",
-            defaultBaseUrl = "https://api.deepseek.com/chat/completions",
+            defaultBaseUrl = "https://api.deepseek.com/",
             supportedModels = listOf(
                 "deepseek-chat",
                 "deepseek-reasoner",
@@ -48,7 +48,7 @@ object AiProviderCatalog {
         AiProviderUiModel(
             providerId = "qwen",
             displayName = "Qwen",
-            defaultBaseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+            defaultBaseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/",
             supportedModels = listOf(
                 "qwen2.5-vl-72b-instruct",
                 "qwen2.5-72b-instruct",
@@ -57,7 +57,7 @@ object AiProviderCatalog {
         AiProviderUiModel(
             providerId = "zhipu",
             displayName = "Z.ai",
-            defaultBaseUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+            defaultBaseUrl = "https://open.bigmodel.cn/api/paas/v4/",
             supportedModels = listOf(
                 "glm-4.6v-flash",
                 "glm-4.5v",
@@ -67,10 +67,19 @@ object AiProviderCatalog {
         AiProviderUiModel(
             providerId = "doubao",
             displayName = "Doubao",
-            defaultBaseUrl = "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+            defaultBaseUrl = "https://ark.cn-beijing.volces.com/api/v3/",
             supportedModels = listOf(
                 "doubao-1.5-vision-pro-32k",
                 "doubao-1.5-pro-32k",
+            ),
+        ),
+        AiProviderUiModel(
+            providerId = "iflow",
+            displayName = "iFlow",
+            defaultBaseUrl = "https://apis.iflow.cn/v1/",
+            supportedModels = listOf(
+                "qwen3-vl-plus",
+                "TBStars2-200B-A13B",
             ),
         ),
     )

@@ -383,6 +383,11 @@ fun SettingsScreen(
                         singleLine = true,
                         colors = outlinedFieldColors(),
                     )
+                    Text(
+                        text = "请填写服务根路径，实际请求会自动拼接 chat/completions。",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
 
                     Button(
                         onClick = viewModel::saveAiConfig,

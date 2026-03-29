@@ -1,4 +1,4 @@
-package com.pickit.app.infrastructure.ai.provider.zhipu
+package com.pickit.app.infrastructure.ai.provider.openai_compatible
 
 import com.pickit.app.domain.model.ModelProvider
 import com.pickit.app.domain.model.ModelProviderConfig
@@ -17,16 +17,16 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 
 @Singleton
-class ZhipuResponseParser @Inject constructor(
+class OpenAiCompatibleResponseParser @Inject constructor(
     private val structuredJsonParser: StructuredJsonParser,
 ) {
     fun parse(
         config: ModelProviderConfig,
         rawResponse: String,
-        response: ZhipuChatCompletionResponse,
+        response: OpenAiCompatibleChatCompletionResponse,
     ): ParsedProductResult {
         val message = response.choices.firstOrNull()?.message
-            ?: throw ModelNonJsonResponseException("智谱返回中没有 choices.message")
+            ?: throw ModelNonJsonResponseException("OpenAI-compatible 返回中没有 choices.message")
         val modelText = extractAssistantText(message.content)
         val payload = structuredJsonParser.parseProductPayload(modelText)
 
@@ -57,14 +57,14 @@ class ZhipuResponseParser @Inject constructor(
             confidence = payload.confidence?.coerceIn(0f, 1f),
             rawText = payload.rawText ?: modelText,
             rawModelResponse = rawResponse,
-            provider = ModelProvider.ZHIPU,
+            provider = ModelProvider.OPENAI_COMPATIBLE,
             model = response.model ?: config.model,
         )
     }
 
     private fun extractAssistantText(content: JsonElement?): String {
         if (content == null) {
-            throw EmptyModelResponseException("智谱返回内容为空")
+            throw EmptyModelResponseException("模型返回内容为空")
         }
 
         val text = when (content) {
@@ -81,7 +81,7 @@ class ZhipuResponseParser @Inject constructor(
         }.trim()
 
         if (text.isBlank()) {
-            throw EmptyModelResponseException("智谱返回内容为空")
+            throw EmptyModelResponseException("模型返回内容为空")
         }
         return text
     }
