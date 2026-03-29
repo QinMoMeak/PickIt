@@ -15,17 +15,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val aiProvider: String = "",
-    val apiBaseUrl: String = "",
-    val aiApiKey: String = "",
-    val aiModel: String = "",
-    val aiTimeoutSeconds: String = "",
-    val aiEnableThinking: Boolean = false,
-    val aiMaxTokens: String = "",
-    val aiTemperature: String = "",
+    val providerOptions: List<AiProviderUiModel> = AiProviderCatalog.providers,
+    val selectedProviderId: String = "zhipu",
+    val selectedModel: String = "glm-4.6v-flash",
+    val availableModels: List<String> = AiProviderCatalog.find("zhipu").supportedModels,
+    val apiKey: String = "",
+    val baseUrl: String = AiProviderCatalog.find("zhipu").defaultBaseUrl,
     val webDavPath: String = "",
     val lastAction: String = "尚未执行同步操作",
+    val noticeMessage: String? = null,
     val isBusy: Boolean = false,
+    val isAiSheetVisible: Boolean = false,
+    val hasCustomBaseUrl: Boolean = false,
 )
 
 @HiltViewModel
@@ -39,53 +40,68 @@ class SettingsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             settingsPreferencesDataSource.settingsFlow.collectLatest { settings ->
+                val provider = AiProviderCatalog.find(settings.aiProvider)
+                val availableModels = provider.supportedModels
+                val selectedModel = settings.aiModel
+                    .takeIf { availableModels.contains(it) }
+                    ?: availableModels.firstOrNull().orEmpty()
+                val hasCustomBaseUrl = settings.apiBaseUrl.isNotBlank() &&
+                    settings.apiBaseUrl != provider.defaultBaseUrl
+
                 _uiState.update {
                     it.copy(
-                        aiProvider = settings.aiProvider,
-                        apiBaseUrl = settings.apiBaseUrl,
-                        aiApiKey = settings.aiApiKey,
-                        aiModel = settings.aiModel,
-                        aiTimeoutSeconds = settings.aiTimeoutSeconds.toString(),
-                        aiEnableThinking = settings.aiEnableThinking,
-                        aiMaxTokens = settings.aiMaxTokens.toString(),
-                        aiTemperature = settings.aiTemperature.toString(),
+                        selectedProviderId = provider.providerId,
+                        selectedModel = selectedModel,
+                        availableModels = availableModels,
+                        apiKey = settings.aiApiKey,
+                        baseUrl = settings.apiBaseUrl.ifBlank { provider.defaultBaseUrl },
                         webDavPath = settings.webDavPath,
+                        hasCustomBaseUrl = hasCustomBaseUrl,
                     )
                 }
             }
         }
     }
 
-    fun onAiProviderChange(value: String) {
-        _uiState.update { it.copy(aiProvider = value) }
+    fun openAiSheet() {
+        _uiState.update { it.copy(isAiSheetVisible = true) }
     }
 
-    fun onApiBaseUrlChange(value: String) {
-        _uiState.update { it.copy(apiBaseUrl = value) }
+    fun closeAiSheet() {
+        _uiState.update { it.copy(isAiSheetVisible = false) }
     }
 
-    fun onAiApiKeyChange(value: String) {
-        _uiState.update { it.copy(aiApiKey = value) }
+    fun onProviderSelected(providerId: String) {
+        _uiState.update { current ->
+            val oldProvider = AiProviderCatalog.find(current.selectedProviderId)
+            val newProvider = AiProviderCatalog.find(providerId)
+            val shouldReplaceBaseUrl = !current.hasCustomBaseUrl ||
+                current.baseUrl.isBlank() ||
+                current.baseUrl == oldProvider.defaultBaseUrl
+            val nextModel = current.selectedModel
+                .takeIf { newProvider.supportedModels.contains(it) }
+                ?: newProvider.supportedModels.firstOrNull().orEmpty()
+
+            current.copy(
+                selectedProviderId = newProvider.providerId,
+                selectedModel = nextModel,
+                availableModels = newProvider.supportedModels,
+                baseUrl = if (shouldReplaceBaseUrl) newProvider.defaultBaseUrl else current.baseUrl,
+                hasCustomBaseUrl = if (shouldReplaceBaseUrl) false else current.hasCustomBaseUrl,
+            )
+        }
     }
 
-    fun onAiModelChange(value: String) {
-        _uiState.update { it.copy(aiModel = value) }
+    fun onModelSelected(model: String) {
+        _uiState.update { it.copy(selectedModel = model) }
     }
 
-    fun onAiTimeoutSecondsChange(value: String) {
-        _uiState.update { it.copy(aiTimeoutSeconds = value) }
+    fun onApiKeyChange(value: String) {
+        _uiState.update { it.copy(apiKey = value) }
     }
 
-    fun onAiEnableThinkingChange(value: Boolean) {
-        _uiState.update { it.copy(aiEnableThinking = value) }
-    }
-
-    fun onAiMaxTokensChange(value: String) {
-        _uiState.update { it.copy(aiMaxTokens = value) }
-    }
-
-    fun onAiTemperatureChange(value: String) {
-        _uiState.update { it.copy(aiTemperature = value) }
+    fun onBaseUrlChange(value: String) {
+        _uiState.update { it.copy(baseUrl = value, hasCustomBaseUrl = true) }
     }
 
     fun onWebDavPathChange(value: String) {
@@ -95,15 +111,17 @@ class SettingsViewModel @Inject constructor(
     fun saveAiConfig() {
         val state = uiState.value
         viewModelScope.launch {
-            settingsPreferencesDataSource.updateAiProvider(state.aiProvider)
-            settingsPreferencesDataSource.updateApiBaseUrl(state.apiBaseUrl)
-            settingsPreferencesDataSource.updateAiApiKey(state.aiApiKey)
-            settingsPreferencesDataSource.updateAiModel(state.aiModel)
-            settingsPreferencesDataSource.updateAiTimeoutSeconds(state.aiTimeoutSeconds.toIntOrNull() ?: 60)
-            settingsPreferencesDataSource.updateAiEnableThinking(state.aiEnableThinking)
-            settingsPreferencesDataSource.updateAiMaxTokens(state.aiMaxTokens.toIntOrNull() ?: 1024)
-            settingsPreferencesDataSource.updateAiTemperature(state.aiTemperature.toDoubleOrNull() ?: 0.1)
-            _uiState.update { it.copy(lastAction = "已保存 AI Provider 配置") }
+            settingsPreferencesDataSource.updateAiProvider(state.selectedProviderId)
+            settingsPreferencesDataSource.updateAiModel(state.selectedModel)
+            settingsPreferencesDataSource.updateAiApiKey(state.apiKey)
+            settingsPreferencesDataSource.updateApiBaseUrl(state.baseUrl)
+            _uiState.update {
+                it.copy(
+                    isAiSheetVisible = false,
+                    lastAction = "已保存 AI 设置",
+                    noticeMessage = "AI 设置已保存",
+                )
+            }
         }
     }
 
@@ -111,7 +129,12 @@ class SettingsViewModel @Inject constructor(
         val value = uiState.value.webDavPath
         viewModelScope.launch {
             settingsPreferencesDataSource.updateWebDavPath(value)
-            _uiState.update { it.copy(lastAction = "已保存 WebDAV 路径") }
+            _uiState.update {
+                it.copy(
+                    lastAction = "已保存 WebDAV 路径",
+                    noticeMessage = "WebDAV 路径已保存",
+                )
+            }
         }
     }
 
@@ -143,6 +166,10 @@ class SettingsViewModel @Inject constructor(
         )
     }
 
+    fun consumeNotice() {
+        _uiState.update { it.copy(noticeMessage = null) }
+    }
+
     private fun executeAction(
         successMessage: String,
         action: suspend () -> Result<Unit>,
@@ -154,6 +181,10 @@ class SettingsViewModel @Inject constructor(
                 it.copy(
                     isBusy = false,
                     lastAction = result.fold(
+                        onSuccess = { successMessage },
+                        onFailure = { error -> error.message ?: "操作失败" },
+                    ),
+                    noticeMessage = result.fold(
                         onSuccess = { successMessage },
                         onFailure = { error -> error.message ?: "操作失败" },
                     ),

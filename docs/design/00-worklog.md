@@ -86,6 +86,14 @@
 - 运行时配置支持 `AI_PROVIDER / AI_BASE_URL / AI_API_KEY / AI_MODEL / AI_TIMEOUT_SECONDS / AI_ENABLE_THINKING`
 - 设置页补齐 AI provider 配置项，业务层不再感知智谱请求格式
 
+### AI 设置交互重构
+
+- 将 AI 配置从整页长表单改为 `ModalBottomSheet`
+- 设置主页面只保留一个 `AI 设置` 入口卡片
+- Bottom Sheet 内部改为服务商网格选择、模型下拉、API Key、Base URL 四项核心配置
+- 高级参数默认隐藏，不再出现在主设置面板
+- 新增 `AiProviderUiModel` 与统一 provider/model 配置源，支持服务商切换时联动模型列表和默认 Base URL
+
 ### 当前状态
 
 - 设计文档、Android 工程、主页面骨架、识别链路、本地持久化、备份恢复均已打通

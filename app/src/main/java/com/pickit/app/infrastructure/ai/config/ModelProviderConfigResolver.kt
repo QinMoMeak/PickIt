@@ -33,9 +33,9 @@ class ModelProviderConfigResolver @Inject constructor(
     }
 
     private fun String.toModelProvider(): ModelProvider = when (trim().uppercase()) {
-        "ZHIPU" -> ModelProvider.ZHIPU
-        "OPENAI_COMPATIBLE" -> ModelProvider.OPENAI_COMPATIBLE
-        "OTHER" -> ModelProvider.OTHER
+        "ZHIPU", "Z.AI", "ZHIPUAI" -> ModelProvider.ZHIPU
+        "OPENAI", "OPENAI_COMPATIBLE", "DEEPSEEK", "QWEN", "DOUBAO" -> ModelProvider.OPENAI_COMPATIBLE
+        "GEMINI", "GOOGLE_GEMINI", "ANTHROPIC", "OTHER" -> ModelProvider.OTHER
         else -> throw ProviderConfigurationException("不支持的 AI_PROVIDER: $this")
     }
 }
