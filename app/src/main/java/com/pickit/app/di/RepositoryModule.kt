@@ -1,10 +1,8 @@
 package com.pickit.app.di
 
-import com.pickit.app.data.repository.RemoteParseRepository
 import com.pickit.app.data.repository.RoomPriceHistoryRepository
 import com.pickit.app.data.repository.RoomProductRepository
 import com.pickit.app.data.repository.RoomSyncRepository
-import com.pickit.app.domain.repository.ParseRepository
 import com.pickit.app.domain.repository.PriceHistoryRepository
 import com.pickit.app.domain.repository.ProductRepository
 import com.pickit.app.domain.repository.SyncRepository
@@ -20,10 +18,6 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindProductRepository(impl: RoomProductRepository): ProductRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindParseRepository(impl: RemoteParseRepository): ParseRepository
 
     @Binds
     @Singleton

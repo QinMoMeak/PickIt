@@ -4,12 +4,13 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pickit.app.application.ParseProductUseCase
 import com.pickit.app.domain.model.ParsedProductDraft
 import com.pickit.app.domain.model.Platform
 import com.pickit.app.domain.model.ProductItem
 import com.pickit.app.domain.model.SourceType
 import com.pickit.app.domain.model.Tag
-import com.pickit.app.domain.repository.ParseRepository
+import com.pickit.app.domain.model.toDraft
 import com.pickit.app.domain.repository.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Instant
@@ -31,7 +32,7 @@ data class PreviewUiState(
 @HiltViewModel
 class PreviewViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val parseRepository: ParseRepository,
+    private val parseProductUseCase: ParseProductUseCase,
     private val productRepository: ProductRepository,
 ) : ViewModel() {
     private val imageUriArg: String = savedStateHandle["imageUri"] ?: ""
@@ -42,15 +43,15 @@ class PreviewViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val result = parseRepository.parseProduct(
+            val result = parseProductUseCase(
                 imageUri = imageUriArg.takeIf { it.isNotBlank() }?.let(Uri::parse),
-                note = noteArg.ifBlank { null },
+                userNote = noteArg.ifBlank { null },
             )
-            result.onSuccess { draft ->
+            result.onSuccess { parsed ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        draft = draft,
+                        draft = parsed.toDraft(sourceNote = noteArg.ifBlank { null }),
                         errorMessage = null,
                     )
                 }

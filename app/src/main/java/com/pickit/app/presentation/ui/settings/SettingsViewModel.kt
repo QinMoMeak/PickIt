@@ -15,7 +15,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
+    val aiProvider: String = "",
     val apiBaseUrl: String = "",
+    val aiApiKey: String = "",
+    val aiModel: String = "",
+    val aiTimeoutSeconds: String = "",
+    val aiEnableThinking: Boolean = false,
+    val aiMaxTokens: String = "",
+    val aiTemperature: String = "",
     val webDavPath: String = "",
     val lastAction: String = "尚未执行同步操作",
     val isBusy: Boolean = false,
@@ -34,7 +41,14 @@ class SettingsViewModel @Inject constructor(
             settingsPreferencesDataSource.settingsFlow.collectLatest { settings ->
                 _uiState.update {
                     it.copy(
+                        aiProvider = settings.aiProvider,
                         apiBaseUrl = settings.apiBaseUrl,
+                        aiApiKey = settings.aiApiKey,
+                        aiModel = settings.aiModel,
+                        aiTimeoutSeconds = settings.aiTimeoutSeconds.toString(),
+                        aiEnableThinking = settings.aiEnableThinking,
+                        aiMaxTokens = settings.aiMaxTokens.toString(),
+                        aiTemperature = settings.aiTemperature.toString(),
                         webDavPath = settings.webDavPath,
                     )
                 }
@@ -42,19 +56,54 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun onAiProviderChange(value: String) {
+        _uiState.update { it.copy(aiProvider = value) }
+    }
+
     fun onApiBaseUrlChange(value: String) {
         _uiState.update { it.copy(apiBaseUrl = value) }
+    }
+
+    fun onAiApiKeyChange(value: String) {
+        _uiState.update { it.copy(aiApiKey = value) }
+    }
+
+    fun onAiModelChange(value: String) {
+        _uiState.update { it.copy(aiModel = value) }
+    }
+
+    fun onAiTimeoutSecondsChange(value: String) {
+        _uiState.update { it.copy(aiTimeoutSeconds = value) }
+    }
+
+    fun onAiEnableThinkingChange(value: Boolean) {
+        _uiState.update { it.copy(aiEnableThinking = value) }
+    }
+
+    fun onAiMaxTokensChange(value: String) {
+        _uiState.update { it.copy(aiMaxTokens = value) }
+    }
+
+    fun onAiTemperatureChange(value: String) {
+        _uiState.update { it.copy(aiTemperature = value) }
     }
 
     fun onWebDavPathChange(value: String) {
         _uiState.update { it.copy(webDavPath = value) }
     }
 
-    fun saveApiBaseUrl() {
-        val value = uiState.value.apiBaseUrl
+    fun saveAiConfig() {
+        val state = uiState.value
         viewModelScope.launch {
-            settingsPreferencesDataSource.updateApiBaseUrl(value)
-            _uiState.update { it.copy(lastAction = "已保存 API 地址") }
+            settingsPreferencesDataSource.updateAiProvider(state.aiProvider)
+            settingsPreferencesDataSource.updateApiBaseUrl(state.apiBaseUrl)
+            settingsPreferencesDataSource.updateAiApiKey(state.aiApiKey)
+            settingsPreferencesDataSource.updateAiModel(state.aiModel)
+            settingsPreferencesDataSource.updateAiTimeoutSeconds(state.aiTimeoutSeconds.toIntOrNull() ?: 60)
+            settingsPreferencesDataSource.updateAiEnableThinking(state.aiEnableThinking)
+            settingsPreferencesDataSource.updateAiMaxTokens(state.aiMaxTokens.toIntOrNull() ?: 1024)
+            settingsPreferencesDataSource.updateAiTemperature(state.aiTemperature.toDoubleOrNull() ?: 0.1)
+            _uiState.update { it.copy(lastAction = "已保存 AI Provider 配置") }
         }
     }
 

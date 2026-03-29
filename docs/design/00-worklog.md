@@ -73,6 +73,19 @@
 - 支持通过 WebDAV 地址执行真实备份与恢复
 - 设置页补齐本地导入导出、WebDAV 备份恢复与风险提示
 
+### AI Provider 架构重构
+
+- 将“商品图片解析”从单一远程仓库重构为可插拔模型接入层
+- 新增统一领域接口 `VisionParseService`
+- 新增应用层 `ParseProductUseCase`
+- 新增统一请求/响应模型 `VisionParseRequest` 与 `ParsedProductResult`
+- 新增 `ModelProviderConfig`、`ModelProviderFactory`、`DefaultVisionParseService`
+- 当前默认接入智谱 `glm-4.6v-flash`
+- 新增 `ZhipuVisionClient`、`ZhipuResponseParser`、`StructuredJsonParser`
+- 预留 `OpenAiCompatibleVisionClient` 扩展位
+- 运行时配置支持 `AI_PROVIDER / AI_BASE_URL / AI_API_KEY / AI_MODEL / AI_TIMEOUT_SECONDS / AI_ENABLE_THINKING`
+- 设置页补齐 AI provider 配置项，业务层不再感知智谱请求格式
+
 ### 当前状态
 
 - 设计文档、Android 工程、主页面骨架、识别链路、本地持久化、备份恢复均已打通

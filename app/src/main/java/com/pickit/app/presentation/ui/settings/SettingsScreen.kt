@@ -5,6 +5,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,10 +13,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pickit.app.presentation.component.SectionCard
@@ -52,28 +56,91 @@ fun SettingsScreen(
             Text("设置", style = MaterialTheme.typography.headlineMedium)
         }
         item {
-            SectionCard(title = "识别服务", modifier = Modifier.fillMaxWidth()) {
+            SectionCard(title = "AI Provider 配置", modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     OutlinedTextField(
+                        value = state.aiProvider,
+                        onValueChange = viewModel::onAiProviderChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("AI_PROVIDER") },
+                        placeholder = { Text("zhipu") },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
                         value = state.apiBaseUrl,
                         onValueChange = viewModel::onApiBaseUrlChange,
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("API 地址") },
-                        placeholder = { Text("https://example.com") },
+                        label = { Text("AI_BASE_URL") },
+                        placeholder = { Text("https://open.bigmodel.cn/api/paas/v4") },
                         singleLine = true,
                     )
+                    OutlinedTextField(
+                        value = state.aiApiKey,
+                        onValueChange = viewModel::onAiApiKeyChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("AI_API_KEY") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                    )
+                    OutlinedTextField(
+                        value = state.aiModel,
+                        onValueChange = viewModel::onAiModelChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("AI_MODEL") },
+                        placeholder = { Text("glm-4.6v-flash") },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = state.aiTimeoutSeconds,
+                        onValueChange = viewModel::onAiTimeoutSecondsChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("AI_TIMEOUT_SECONDS") },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = state.aiMaxTokens,
+                        onValueChange = viewModel::onAiMaxTokensChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("AI_MAX_TOKENS") },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = state.aiTemperature,
+                        onValueChange = viewModel::onAiTemperatureChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("AI_TEMPERATURE") },
+                        singleLine = true,
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("AI_ENABLE_THINKING")
+                            Text(
+                                text = if (state.aiEnableThinking) "enabled" else "disabled",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = state.aiEnableThinking,
+                            onCheckedChange = viewModel::onAiEnableThinkingChange,
+                        )
+                    }
                     Button(
-                        onClick = viewModel::saveApiBaseUrl,
+                        onClick = viewModel::saveAiConfig,
                         enabled = !state.isBusy,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("保存接口地址")
+                        Text("保存 AI 配置")
                     }
                     Text(
-                        "图片识别会请求这个地址下的 /api/v1/parse-product。",
+                        "当前默认模型为智谱 glm-4.6v-flash；后续切换服务商时只需要改 provider 配置和适配器。",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
@@ -144,7 +211,7 @@ fun SettingsScreen(
                         Text("从 WebDAV 恢复")
                     }
                     Text(
-                        "默认会把备份写到「API 地址 + WebDAV 路径 + pickit-backup.json」，请确认目录已存在。",
+                        "默认会把备份写到“AI_BASE_URL + WebDAV 路径 + pickit-backup.json”，请确认目录已存在。",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }

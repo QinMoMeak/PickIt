@@ -6,6 +6,13 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
+fun readConfig(name: String, defaultValue: String): String =
+    (project.findProperty(name) as String?)
+        ?: System.getenv(name)
+        ?: defaultValue
+
+fun escapeBuildConfigString(value: String): String = value.replace("\\", "\\\\").replace("\"", "\\\"")
+
 android {
     namespace = "com.pickit.app"
     compileSdk = 34
@@ -21,6 +28,24 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        val aiProvider = readConfig("AI_PROVIDER", "zhipu")
+        val aiBaseUrl = readConfig("AI_BASE_URL", "https://open.bigmodel.cn/api/paas/v4")
+        val aiApiKey = readConfig("AI_API_KEY", "")
+        val aiModel = readConfig("AI_MODEL", "glm-4.6v-flash")
+        val aiTimeoutSeconds = readConfig("AI_TIMEOUT_SECONDS", "60")
+        val aiEnableThinking = readConfig("AI_ENABLE_THINKING", "false")
+        val aiMaxTokens = readConfig("AI_MAX_TOKENS", "1024")
+        val aiTemperature = readConfig("AI_TEMPERATURE", "0.1")
+
+        buildConfigField("String", "AI_PROVIDER", "\"${escapeBuildConfigString(aiProvider)}\"")
+        buildConfigField("String", "AI_BASE_URL", "\"${escapeBuildConfigString(aiBaseUrl)}\"")
+        buildConfigField("String", "AI_API_KEY", "\"${escapeBuildConfigString(aiApiKey)}\"")
+        buildConfigField("String", "AI_MODEL", "\"${escapeBuildConfigString(aiModel)}\"")
+        buildConfigField("int", "AI_TIMEOUT_SECONDS", aiTimeoutSeconds)
+        buildConfigField("boolean", "AI_ENABLE_THINKING", aiEnableThinking)
+        buildConfigField("int", "AI_MAX_TOKENS", aiMaxTokens)
+        buildConfigField("double", "AI_TEMPERATURE", aiTemperature)
     }
 
     buildTypes {
@@ -90,7 +115,6 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
